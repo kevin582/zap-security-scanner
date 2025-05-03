@@ -1,0 +1,79 @@
+# ZAP temporary files
+automation-plan.yaml*
+*.tmp
+*.temp
+
+# Reports and output directories
+ZAP-Reports/
+reports/
+output/
+
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+
+# Temporary directories
+/tmp/
+temp/
+**/zap-scan-*/
+
+# Custom URL files (except the default)
+*.txt
+!URLs.txt
+
+# Log files
+*.log
+zap.log*
+*.log.*
+
+# Docker related
+.docker/
+docker-compose.override.yml
+
+# Security and keys
+*.pem
+*.key
+*.cert
+*.crt
+.ssh/
+id_*
+*.pub
+git-key*
+**/git-key*
+.git-key*
+**/git-key.*
+
+# IDE and editor files
+.idea/
+.vscode/
+*.sublime-*
+*.code-workspace
+
+# Environment and configuration
+.env
+.env.*
+config.local.yaml
+*.local.yaml
+
+# Backup files
+*.bak
+*.backup
+*.[0-9]
+*.old
+
+# Test files
+test/
+tests/
+__pycache__/
+*.pyc
+
+# Build artifacts
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib 

@@ -1,0 +1,22 @@
+# Example URLs for ZAP Security Scanning
+# Remove or modify these URLs before running your scan
+
+# Local Development Examples
+http://localhost:3000
+http://localhost:8080
+
+# Public Examples (replace with your targets)
+https://example.com
+https://example.org
+
+# Add your target URLs below:
+http://localhost:3000/login
+http://localhost:3000/rest/user/whoami
+http://localhost:3000/#/search
+http://localhost:3000/#/contact
+https://www.zaproxy.org
+https://www.zaproxy.org/docs/
+https://www.zaproxy.org/blog/
+https://www.google.com
+https://www.google.com/search
+https://www.google.com/maps
