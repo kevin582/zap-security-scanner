@@ -4,6 +4,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_DIR="/home/kali/ZAP-Reports/logs"
 LOG_FILE="${LOG_DIR}/cron-scan-$(date +\%Y-\%m-\%d).log"
+TRASH_DIR="/ZAP-Trash"
 
 # Create logs directory if it doesn't exist
 mkdir -p "$LOG_DIR"
@@ -14,6 +15,23 @@ exec 2>&1
 
 echo "=== ZAP Security Scan Started at $(date) ==="
 echo "Running from directory: $SCRIPT_DIR"
+
+# Clean up ZAP-Trash directory - only on first day of month
+if [ "$(date +%d)" = "01" ]; then
+    echo "First day of month - performing monthly trash cleanup..."
+    if [ -d "$TRASH_DIR" ]; then
+        # Remove everything inside the directory while keeping the root directory
+        if sudo rm -rf "${TRASH_DIR:?}"/* "${TRASH_DIR:?}"/.[!.]* 2>/dev/null; then
+            echo "Successfully removed all contents from $TRASH_DIR"
+        else
+            echo "Warning: Failed to clean up $TRASH_DIR"
+        fi
+    else
+        echo "Warning: $TRASH_DIR directory does not exist"
+    fi
+else
+    echo "Not first day of month - skipping trash cleanup"
+fi
 
 # Change to script directory
 cd "$SCRIPT_DIR" || {

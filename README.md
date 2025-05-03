@@ -50,3 +50,27 @@ To monitor scheduled scans:
    tail -f /home/kali/ZAP-Reports/logs/cron-scan-$(date +%Y-%m-%d).log
    ```
 3. Check generated reports in the monthly directories
+
+### Automated Cleanup
+
+The scheduled scan includes automated cleanup routines:
+
+1. Monthly Trash Cleanup (1st day of each month):
+   - Location: `/ZAP-Trash/`
+   - Requires sudo permissions
+   - Removes all contents (files, subdirectories, and hidden files)
+   - Preserves only the root directory
+   - Only executes on the first day of each month
+   - Complete cleanup: removes everything inside target directory
+
+2. Log Rotation:
+   - Removes logs older than 30 days
+   - Applies to: `/home/kali/ZAP-Reports/logs/`
+
+### Security Considerations
+
+When implementing this scanner on a new system:
+1. Create the `/ZAP-Trash/` directory with appropriate permissions (one-time setup)
+2. Configure sudo access for the cleanup routine
+3. Verify the cron job runs with necessary permissions
+4. Monitor cleanup logs for any permission issues
