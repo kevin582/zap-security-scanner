@@ -1,6 +1,37 @@
 # zap-security-scanner
 Automated security scanning solution using OWASP ZAP
 
+## Clean Installation
+
+To perform a clean installation of the ZAP security scanner:
+
+1. Remove any existing installations (if applicable):
+   ```bash
+   cd /home/kali
+   rm -rf .ZAP ZAP-Reports
+   ```
+
+2. Clone the repository:
+   ```bash
+   git clone https://github.com/kevin582/zap-security-scanner .ZAP
+   cd .ZAP
+   ```
+
+3. Run the setup script:
+   ```bash
+   bash setup.sh
+   ```
+   This will:
+   - Set up necessary directories
+   - Configure Docker permissions
+   - Install required dependencies
+   - Pull the latest ZAP Docker image
+
+4. Run a test scan:
+   ```bash
+   bash run_scan.sh
+   ```
+
 ## Scheduled Scanning
 
 The project includes support for automated scheduled scanning using cron jobs. This allows for regular, automated security assessments of your target URLs.
