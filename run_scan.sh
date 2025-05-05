@@ -14,7 +14,7 @@ URLS_FILE="URLs.txt"
 REPORT_DATE=$(date +"%Y-%m-%d")
 REPORT_NAME="${REPORT_DATE}-ZAP-Report"
 REPORT_MONTH=$(date +"%B_%Y_Reports")
-BASE_REPORTS_DIR="/home/kali/ZAP-Reports"
+BASE_REPORTS_DIR="/opt/Reports"
 REPORT_DIR="${BASE_REPORTS_DIR}/${REPORT_MONTH}"
 TEMP_DIR="/tmp/zap-scan-$$"
 

@@ -2,7 +2,7 @@
 
 # Script location
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_DIR="/home/kali/ZAP-Reports/logs"
+LOG_DIR="/opt/Reports/logs"
 LOG_FILE="${LOG_DIR}/cron-scan-$(date +\%Y-\%m-\%d).log"
 TRASH_DIR="/ZAP-Trash"
 
