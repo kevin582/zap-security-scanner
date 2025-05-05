@@ -214,13 +214,17 @@ SCAN_EXIT_CODE=$?
 if [ $SCAN_EXIT_CODE -eq 0 ]; then
     echo "Scan completed successfully!"
     
-    # Move reports to final location
-    sudo mv "${TEMP_REPORTS_DIR}/${REPORT_NAME}-risk-confidence.html" "${REPORT_DIR}/"
-    sudo mv "${TEMP_REPORTS_DIR}/${REPORT_NAME}-traditional.json" "${REPORT_DIR}/"
+    # Remove existing report files if they exist
+    sudo rm -rf "${REPORT_DIR}/${REPORT_NAME}-risk-confidence"* "${REPORT_DIR}/${REPORT_NAME}-traditional.json"
     
-    # Set proper permissions
-    sudo chown root:kali "${REPORT_DIR}/${REPORT_NAME}"*.{html,json}
-    sudo chmod 644 "${REPORT_DIR}/${REPORT_NAME}"*.{html,json}
+    # Move all report files to final location
+    sudo cp -r "${TEMP_REPORTS_DIR}/${REPORT_NAME}-risk-confidence"* "${REPORT_DIR}/"
+    sudo cp "${TEMP_REPORTS_DIR}/${REPORT_NAME}-traditional.json" "${REPORT_DIR}/"
+    
+    # Set proper permissions recursively
+    sudo find "${REPORT_DIR}/${REPORT_NAME}"* -type d -exec chmod 755 {} \;
+    sudo find "${REPORT_DIR}/${REPORT_NAME}"* -type f -exec chmod 644 {} \;
+    sudo chown -R root:kali "${REPORT_DIR}/${REPORT_NAME}"*
     sudo chmod 775 "$REPORT_DIR"
     
     echo "Reports are available in: ${REPORT_DIR}"
