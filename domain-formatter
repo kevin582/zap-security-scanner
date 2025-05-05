@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# Check if a file was provided as an argument
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <input-file>"
+    echo "Example: $0 domains.txt"
+    exit 1
+fi
+
+INPUT_FILE="$1"
+OUTPUT_FILE="${INPUT_FILE%.*}-formatted.txt"
+
+# Check if input file exists
+if [ ! -f "$INPUT_FILE" ]; then
+    echo "Error: File '$INPUT_FILE' not found"
+    exit 1
+fi
+
+# Create temporary file
+TMP_FILE=$(mktemp)
+
+# Process each line
+while IFS= read -r line || [ -n "$line" ]; do
+    # Skip empty lines
+    [ -z "$line" ] && continue
+    
+    # Split line into multiple URLs if space-separated
+    for url in $line; do
+        # Remove any trailing slashes, 'http://', or 'https://'
+        clean_url=$(echo "$url" | sed 's#^https\?://##' | sed 's#/$##')
+        
+        # Skip if empty after cleaning
+        [ -z "$clean_url" ] && continue
+        
+        # Add to temporary file with https:// prefix and trailing slash
+        echo "https://${clean_url}/" >> "$TMP_FILE"
+    done
+done < "$INPUT_FILE"
+
+# Sort and remove duplicates
+sort -u "$TMP_FILE" > "$OUTPUT_FILE"
+
+# Clean up
+rm -f "$TMP_FILE"
+
+# Set permissions
+chmod 644 "$OUTPUT_FILE"
+
+echo "Formatted URLs have been saved to: $OUTPUT_FILE"
+echo "Number of unique domains: $(wc -l < "$OUTPUT_FILE")" 
