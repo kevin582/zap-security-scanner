@@ -2,12 +2,15 @@
 
 # Script location
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_DIR="/home/kali/ZAP-Reports/logs"
+BASE_DIR="/opt/Reports"
+LOG_DIR="${BASE_DIR}/logs"
 LOG_FILE="${LOG_DIR}/cron-scan-$(date +\%Y-\%m-\%d).log"
-TRASH_DIR="/ZAP-Trash"
+TRASH_DIR="/opt/ZAP-Trash"
 
 # Create logs directory if it doesn't exist
-mkdir -p "$LOG_DIR"
+sudo mkdir -p "$LOG_DIR"
+sudo chown root:kali "$LOG_DIR"
+sudo chmod 775 "$LOG_DIR"
 
 # Redirect all output to log file
 exec 1> >(tee -a "$LOG_FILE")
@@ -28,6 +31,10 @@ if [ "$(date +%d)" = "01" ]; then
         fi
     else
         echo "Warning: $TRASH_DIR directory does not exist"
+        sudo mkdir -p "$TRASH_DIR"
+        sudo chown root:kali "$TRASH_DIR"
+        sudo chmod 775 "$TRASH_DIR"
+        echo "Created $TRASH_DIR directory"
     fi
 else
     echo "Not first day of month - skipping trash cleanup"
@@ -40,12 +47,16 @@ cd "$SCRIPT_DIR" || {
 }
 
 # Run the scan with standard naming convention
-./run_scan.sh -n "$(date +\%Y-\%m-\%d)-ZAP-Report"
+./run_scan.sh -u URLs.txt -n "$(date +\%Y-\%m-\%d)-ZAP-Report" -o "$BASE_DIR"
 
 SCAN_EXIT_CODE=$?
 
 echo "=== ZAP Security Scan Completed at $(date) ==="
 echo "Exit Code: $SCAN_EXIT_CODE"
+
+# Set proper permissions for log file
+sudo chown root:kali "$LOG_FILE"
+sudo chmod 644 "$LOG_FILE"
 
 # Cleanup old logs (keep last 30 days)
 find "$LOG_DIR" -name "cron-scan-*.log" -type f -mtime +30 -delete

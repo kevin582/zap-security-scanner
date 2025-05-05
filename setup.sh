@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configuration
-DEFAULT_BASE_DIR="/home/kali/ZAP-Reports"
+DEFAULT_BASE_DIR="/opt/Reports"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Function to check and fix Docker permissions
@@ -101,7 +101,7 @@ update_paths() {
     # Update BASE_REPORTS_DIR in run_scan.sh if different from default
     if [ "$base_dir" != "$DEFAULT_BASE_DIR" ]; then
         echo "Updating reports directory path in run_scan.sh..."
-        sed -i "s|BASE_REPORTS_DIR=\"/home/kali/ZAP-Reports\"|BASE_REPORTS_DIR=\"$base_dir\"|" "$script_path"
+        sed -i "s|BASE_REPORTS_DIR=\"/opt/Reports\"|BASE_REPORTS_DIR=\"$base_dir\"|" "$script_path"
     fi
 }
 

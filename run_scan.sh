@@ -6,6 +6,7 @@ show_usage() {
     echo "Options:"
     echo "  -u, --urls <file>     Path to URLs file (default: URLs.txt)"
     echo "  -n, --name <name>     Custom report name (default: YYYY-MM-DD-ZAP-Report)"
+    echo "  -o, --outdir <dir>    Custom output directory (default: /opt/Reports)"
     echo "  -h, --help            Show this help message"
 }
 
@@ -14,12 +15,15 @@ URLS_FILE="URLs.txt"
 REPORT_DATE=$(date +"%Y-%m-%d")
 REPORT_NAME="${REPORT_DATE}-ZAP-Report"
 REPORT_MONTH=$(date +"%B_%Y_Reports")
-BASE_REPORTS_DIR="/home/kali/ZAP-Reports"
+BASE_REPORTS_DIR="/opt/Reports"
 REPORT_DIR="${BASE_REPORTS_DIR}/${REPORT_MONTH}"
 TEMP_DIR="/tmp/zap-scan-$$"
+TEMP_REPORTS_DIR="${TEMP_DIR}/reports"
 
-# Create temporary directory
+# Create temporary directories and set permissions
 mkdir -p "$TEMP_DIR"
+mkdir -p "$TEMP_REPORTS_DIR"
+chmod 777 "$TEMP_REPORTS_DIR"  # Allow ZAP user to write to temp directory
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -30,6 +34,11 @@ while [[ $# -gt 0 ]]; do
             ;;
         -n|--name)
             REPORT_NAME="$2"
+            shift 2
+            ;;
+        -o|--outdir)
+            BASE_REPORTS_DIR="$2"
+            REPORT_DIR="${BASE_REPORTS_DIR}/${REPORT_MONTH}"
             shift 2
             ;;
         -h|--help)
@@ -85,6 +94,7 @@ generate_context_config() {
     local urls_file="$1"
     local temp_file="$2"
     local report_dir="$3"
+    local report_name="$4"
     
     echo "Generating context configuration from URLs..."
     
@@ -155,7 +165,7 @@ jobs:
     parameters:
       template: "risk-confidence-html"
       reportDir: "/zap/reports"
-      reportFile: "${report_dir}/zap-risk-confidence-report"
+      reportFile: "${report_name}-risk-confidence"
       reportTitle: "ZAP Multi-Site Security Assessment Report"
       reportDescription: "Passive scan results with risk and confidence levels"
       displayReport: false
@@ -165,7 +175,7 @@ jobs:
     parameters:
       template: "traditional-json"
       reportDir: "/zap/reports"
-      reportFile: "${report_dir}/zap-traditional-report"
+      reportFile: "${report_name}-traditional"
       reportTitle: "ZAP Multi-Site Security Assessment Report"
       reportDescription: "Passive scan results in traditional JSON format"
       displayReport: false
@@ -175,7 +185,9 @@ EOL
 }
 
 # Create reports directory with month and year
-mkdir -p "$REPORT_DIR"
+sudo mkdir -p "$REPORT_DIR"
+sudo chown root:kali "$REPORT_DIR"
+sudo chmod 775 "$REPORT_DIR"
 
 # Copy URLs file to temporary directory
 cp "$URLS_FILE" "$TEMP_DIR/URLs.txt"
@@ -184,17 +196,13 @@ cp "$URLS_FILE" "$TEMP_DIR/URLs.txt"
 check_zap_version
 
 # Generate automation plan from URLs
-generate_context_config "$URLS_FILE" "$TEMP_DIR/automation-plan.yaml" "$REPORT_MONTH"
-
-# Update report names in the temporary plan
-sed -i "s|${REPORT_MONTH}/zap-risk-confidence-report|${REPORT_MONTH}/${REPORT_NAME}-risk-confidence|g" "$TEMP_DIR/automation-plan.yaml"
-sed -i "s|${REPORT_MONTH}/zap-traditional-report|${REPORT_MONTH}/${REPORT_NAME}-traditional|g" "$TEMP_DIR/automation-plan.yaml"
+generate_context_config "$URLS_FILE" "$TEMP_DIR/automation-plan.yaml" "$REPORT_MONTH" "$REPORT_NAME"
 
 # Run ZAP scan using Docker with the temporary automation plan
 docker run --rm \
-    -v "${TEMP_DIR}:/zap/wrk:rw" \
-    -v "${BASE_REPORTS_DIR}:/zap/reports:rw" \
-    --net=host \
+    -v "${TEMP_DIR}:/zap/wrk" \
+    -v "${TEMP_REPORTS_DIR}:/zap/reports" \
+    --user zap \
     --name zap \
     ghcr.io/zaproxy/zaproxy:stable \
     zap.sh -cmd -autorun /zap/wrk/automation-plan.yaml
@@ -205,9 +213,19 @@ SCAN_EXIT_CODE=$?
 # Check if scan was successful
 if [ $SCAN_EXIT_CODE -eq 0 ]; then
     echo "Scan completed successfully!"
-    echo "Reports are available in: $REPORT_DIR"
-    echo "- Risk Confidence Report: $REPORT_DIR/${REPORT_NAME}-risk-confidence.html"
-    echo "- Traditional JSON Report: $REPORT_DIR/${REPORT_NAME}-traditional.json"
+    
+    # Move reports to final location
+    sudo mv "${TEMP_REPORTS_DIR}/${REPORT_NAME}-risk-confidence.html" "${REPORT_DIR}/"
+    sudo mv "${TEMP_REPORTS_DIR}/${REPORT_NAME}-traditional.json" "${REPORT_DIR}/"
+    
+    # Set proper permissions
+    sudo chown root:kali "${REPORT_DIR}/${REPORT_NAME}"*.{html,json}
+    sudo chmod 644 "${REPORT_DIR}/${REPORT_NAME}"*.{html,json}
+    sudo chmod 775 "$REPORT_DIR"
+    
+    echo "Reports are available in: ${REPORT_DIR}"
+    echo "- Risk Confidence Report: ${REPORT_DIR}/${REPORT_NAME}-risk-confidence.html"
+    echo "- Traditional JSON Report: ${REPORT_DIR}/${REPORT_NAME}-traditional.json"
 else
     echo "Error: Scan failed!"
     exit 1
